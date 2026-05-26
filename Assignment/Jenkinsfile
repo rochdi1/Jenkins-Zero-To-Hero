@@ -1,9 +1,7 @@
 pipeline {
-    // Tell Jenkins to run the entire pipeline inside a Docker container
     agent {
         docker {
             image 'node:18-alpine'
-            // Reuses the workspace across steps cleanly
             reuseNode true 
         }
     }
@@ -18,8 +16,7 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 echo 'Installing application dependencies inside Docker container...'
-                dir('hello-world-app') {
-                    // Running directly within the node container environment
+                dir('Assignment/hello-world-app') {
                     sh 'npm install'
                 }
             }
@@ -28,7 +25,7 @@ pipeline {
         stage('Build & Test Application') {
             steps {
                 echo 'Building and testing application inside Docker container...'
-                dir('hello-world-app') {
+                dir('Assignment/hello-world-app') {
                     sh 'npm test'
                     sh 'node app.js'
                 }
