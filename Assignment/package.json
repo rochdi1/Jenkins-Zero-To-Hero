@@ -1,0 +1,15 @@
+cat <<EOF > package.json
+{
+  "name": "jenkins-hello-world",
+  "version": "1.0.0",
+  "description": "A simple Node.js app for Jenkins pipeline testing",
+  "main": "app.js",
+  "scripts": {
+    "install-deps": "npm install",
+    "test": "echo \"Running tests... Project builds successfully!\" && exit 0"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21"
+  }
+}
+EOF
