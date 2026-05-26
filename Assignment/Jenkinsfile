@@ -1,23 +1,25 @@
 pipeline {
-    agent any
-
-    tools {
-        nodejs 'node' // Ensures Node.js is configured in your Jenkins Global Tool Configuration
+    // Tell Jenkins to run the entire pipeline inside a Docker container
+    agent {
+        docker {
+            image 'node:18-alpine'
+            // Reuses the workspace across steps cleanly
+            reuseNode true 
+        }
     }
 
     stages {
         stage('Clone Repository') {
             steps {
-                echo 'Checkout code...'
-                // Jenkins automatically handles checkout in a declarative pipeline
+                echo 'Code is automatically checked out inside the container...'
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                echo 'Installing application dependencies...'
+                echo 'Installing application dependencies inside Docker container...'
                 dir('hello-world-app') {
-                    // This executes an actual npm install instead of just checking versions
+                    // Running directly within the node container environment
                     sh 'npm install'
                 }
             }
@@ -25,11 +27,9 @@ pipeline {
 
         stage('Build & Test Application') {
             steps {
-                echo 'Building and testing the application...'
+                echo 'Building and testing application inside Docker container...'
                 dir('hello-world-app') {
-                    // Executes the test script defined in package.json
                     sh 'npm test'
-                    // Validates that the application runs successfully
                     sh 'node app.js'
                 }
             }
@@ -38,10 +38,10 @@ pipeline {
     
     post {
         success {
-            echo 'Pipeline completed successfully!'
+            echo 'Pipeline executed seamlessly inside Docker!'
         }
         failure {
-            echo 'Pipeline failed. Check logs for errors.'
+            echo 'Pipeline failed inside Docker container. Check logs.'
         }
     }
 }
