@@ -1,0 +1,44 @@
+pipeline {
+    agent {
+        docker {
+            image 'node:18-alpine'
+            reuseNode true 
+        }
+    }
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                echo 'Code is automatically checked out inside the container...'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                echo 'Installing application dependencies inside Docker container...'
+                dir('Assignment/hello-world-app') {
+                    sh 'npm install'
+                }
+            }
+        }
+
+        stage('Build & Test Application') {
+            steps {
+                echo 'Building and testing application inside Docker container...'
+                dir('Assignment/hello-world-app') {
+                    sh 'npm test'
+                    sh 'node app.js'
+                }
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo 'Pipeline executed seamlessly inside Docker!'
+        }
+        failure {
+            echo 'Pipeline failed inside Docker container. Check logs.'
+        }
+    }
+}
