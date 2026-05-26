@@ -1,4 +1,3 @@
-cat << EOF > app.js;
 const _ = require("lodash");
 
 console.log("Hello, World from Jenkins Pipeline!");
