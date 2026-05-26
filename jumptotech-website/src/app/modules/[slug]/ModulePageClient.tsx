@@ -42,14 +42,13 @@ interface Props {
 }
 
 export function ModulePageClient({ initialModuleSlug }: Props) {
-  const { loggedIn, mounted: authMounted } = useAuth();
-  const router = useRouter();
   const { modulesData } = useAppState();
 
   const foundMod = modulesData.find(m => m.slug === initialModuleSlug);
   const mod = foundMod || null;
 
   const { mounted, completedLectures, completedLabs, toggleLecture, toggleLab } = useProgress(mod ? mod.id : "");
+  const { role } = useAuth();
 
   const [dbLectures, setDbLectures] = useState<Lecture[]>([]);
   const [expandedLectures, setExpandedLectures] = useState<Set<string>>(new Set());
@@ -79,15 +78,7 @@ export function ModulePageClient({ initialModuleSlug }: Props) {
     }
   }, [mod?.slug]);
 
-  useEffect(() => {
-    if (authMounted && !loggedIn) {
-      router.replace("/login");
-    }
-  }, [authMounted, loggedIn, router]);
-
   if (!mod) return null;
-
-  if (!authMounted || !loggedIn) return null;
 
   const dbLectureIds = new Set(dbLectures.map((l) => l.id));
   const displayLectures = [...dbLectures, ...mod.lectures];
@@ -228,8 +219,8 @@ export function ModulePageClient({ initialModuleSlug }: Props) {
                       }`}
                     >
                       <div
-                        className="flex items-start gap-3 p-4 cursor-pointer hover:bg-[#185FA5]/5 rounded-xl transition-colors"
-                        onClick={() => toggleExpanded(lecture.id)}
+                        className={`flex items-start gap-3 p-4 rounded-xl transition-colors ${role !== "visitor" ? "cursor-pointer hover:bg-[#185FA5]/5" : "opacity-80"}`}
+                        onClick={() => role !== "visitor" ? toggleExpanded(lecture.id) : null}
                       >
                         {/* Number / check — click only toggles completion */}
                         <div
@@ -262,10 +253,14 @@ export function ModulePageClient({ initialModuleSlug }: Props) {
                                   New
                                 </span>
                               )}
-                              <ChevronDown
-                                size={14}
-                                className={`text-[var(--muted)] transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
-                              />
+                              {role === "visitor" ? (
+                                <span className="text-xs text-[var(--muted)] font-medium">Locked</span>
+                              ) : (
+                                <ChevronDown
+                                  size={14}
+                                  className={`text-[var(--muted)] transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
+                                />
+                              )}
                             </div>
                           </div>
                           <p className="text-xs text-[var(--muted)] mt-1 leading-relaxed">{lecture.description}</p>
@@ -317,12 +312,12 @@ export function ModulePageClient({ initialModuleSlug }: Props) {
                   return (
                     <div
                       key={lab.id}
-                      className={`group flex items-start gap-3 p-4 rounded-xl border transition-all cursor-pointer ${
+                      className={`group flex items-start gap-3 p-4 rounded-xl border transition-all ${role !== "visitor" ? "cursor-pointer" : "opacity-80"} ${
                         isCompleted
                           ? "border-[#1D9E75]/30 bg-[#1D9E75]/5"
-                          : "border-[var(--border)] bg-[var(--card-bg)] hover:border-[#1D9E75]/40 hover:bg-[#1D9E75]/5"
+                          : `border-[var(--border)] bg-[var(--card-bg)] ${role !== "visitor" ? "hover:border-[#1D9E75]/40 hover:bg-[#1D9E75]/5" : ""}`
                       }`}
-                      onClick={() => mounted && toggleLab(lab.id)}
+                      onClick={() => role !== "visitor" && mounted && toggleLab(lab.id)}
                     >
                       {isCompleted ? (
                         <CheckCircle2 size={20} className="text-[#1D9E75] shrink-0 mt-0.5" />
@@ -339,11 +334,16 @@ export function ModulePageClient({ initialModuleSlug }: Props) {
                           >
                             Lab {idx + 1} — {lab.title}
                           </p>
-                          <span
-                            className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border shrink-0 ${difficultyColors[lab.difficulty]}`}
-                          >
-                            {lab.difficulty}
-                          </span>
+                          <div className="flex gap-2 items-center">
+                            {role === "visitor" && (
+                              <span className="text-xs text-[var(--muted)] font-medium">Locked</span>
+                            )}
+                            <span
+                              className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border shrink-0 ${difficultyColors[lab.difficulty]}`}
+                            >
+                              {lab.difficulty}
+                            </span>
+                          </div>
                         </div>
                         <p className="text-xs text-[var(--muted)] leading-relaxed">{lab.description}</p>
                       </div>
