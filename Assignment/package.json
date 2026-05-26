@@ -1,4 +1,4 @@
-cat <<EOF > package.json
+
 {
   "name": "jenkins-hello-world",
   "version": "1.0.0",
@@ -12,4 +12,3 @@ cat <<EOF > package.json
     "lodash": "^4.17.21"
   }
 }
-EOF
