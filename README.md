@@ -1,6 +1,5 @@
-# Jenkins-Zero-To-Hero
-
-Are you looking forward to learn Jenkins right from Zero(installation) to Hero(Build end to end pipelines)? then you are at the right place. 
+Hi 
+Are you look to learn Jenkins right from Zero(installation) to Hero(Build end to end pipelines)? then you are at the right place. 
 
 ## Installation on EC2 Instance
 
@@ -13,7 +12,7 @@ https://www.youtube.com/watch?v=zZfhAXfBvVA&list=RDCMUCnnQ3ybuyFdzvgv2Ky5jnAA&in
 Install Jenkins, configure Docker as agent, set up cicd, deploy applications to k8s and much more.
 
 ## AWS EC2 Instance
-
+new change
 - Go to AWS Console
 - Instances(running)
 - Launch instances
