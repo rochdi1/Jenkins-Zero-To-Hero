@@ -1,21 +1,34 @@
 pipeline {
-  agent none
-  stages {
-    stage('Back-end') {
-      agent {
-        docker { image 'maven:3.8.1-adoptopenjdk-11' }
-      }
-      steps {
-        sh 'mvn --version'
-      }
+    agent none
+    stages {
+        stage('Back-end') {
+            agent {
+                docker { 
+                    image 'maven:3.9.6-eclipse-temurin-21'
+                    label 'docker'
+                }
+            }
+            steps {
+                sh 'mvn --version'
+                // Runs a clean package build (assumes a standard Maven pom.xml is in your repo)
+                sh 'mvn clean package -DskipTests'
+                sh 'sleep 90' // Keeps the container active for inspection
+            }
+        }
+        stage('Front-end') {
+            agent {
+                docker { 
+                    image 'node:20-alpine'
+                    label 'docker'
+                }
+            }
+            steps {
+                sh 'node --version'
+                sh 'npm --version'
+                // Installs dependencies (assumes package.json is present)
+                sh 'npm install'
+                sh 'sleep 90' // Keeps the container active for inspection
+            }
+        }
     }
-    stage('Front-end') {
-      agent {
-        docker { image 'node:16-alpine' }
-      }
-      steps {
-        sh 'node --version'
-      }
-    }
-  }
 }
