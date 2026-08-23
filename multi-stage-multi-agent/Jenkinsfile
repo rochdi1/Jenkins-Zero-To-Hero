@@ -1,21 +1,42 @@
 pipeline {
-  agent none
-  stages {
-    stage('Back-end') {
-      agent {
-        docker { image 'maven:3.8.1-adoptopenjdk-11' }
-      }
-      steps {
-        sh 'mvn --version'
-      }
+    agent none
+
+    stages {
+        stage('Back-end') {
+            agent {
+                docker {
+                    image 'maven:3.8.1-adoptopenjdk-11'
+                }
+            }
+            steps {
+                sh '''
+                echo "=== Maven Container Started ==="
+                mvn --version
+                echo "Hello World from Maven Container"
+                '''
+            }
+        }
+
+        stage('Front-end') {
+            agent {
+                docker {
+                    image 'node:16-alpine'
+                }
+            }
+            steps {
+                sh '''
+                echo "=== Node Container Started ==="
+
+                node --version
+                npm --version
+
+                npm init -y
+                npm install lodash
+
+                echo 'console.log("Hello World from Node Container");' > app.js
+                node app.js
+                '''
+            }
+        }
     }
-    stage('Front-end') {
-      agent {
-        docker { image 'node:16-alpine' }
-      }
-      steps {
-        sh 'node --version'
-      }
-    }
-  }
 }
