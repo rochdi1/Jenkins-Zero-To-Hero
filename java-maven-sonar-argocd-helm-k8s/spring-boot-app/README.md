@@ -131,14 +131,15 @@ Führe den Befehl direkt aus:
 
 ```bash
 sudo sysctl -w vm.max_map_count=524288
-```
-``` Mache die Änderung dauerhaft (sonst ist sie nach einem Server-Neustart weg):
+``` 
+
+Mache die Änderung dauerhaft (sonst ist sie nach einem Server-Neustart weg):
 
 ```bash
 echo "vm.max_map_count=524288" | sudo tee -a /etc/sysctl.conf
 ```
 
-``` Danach kannst du die Container wie gewohnt starten:
+ Danach kannst du die Container wie gewohnt starten:
 
 ```bash
 docker compose up -d
@@ -151,21 +152,86 @@ Entwickler:
 
 1- Entwicklung (code Anpassung)
 
-2- docker rmi my-java-image
+2- docker rmi my-spring-boot-app-image
 
-3- docker build -t my-java-image .
+3- docker build -t my-spring-boot-app-image .
 
-4- docker tag my-java-image rochdi1/my-java-image:v5.0
+4- docker tag my-spring-boot-app-image rochdi1/my-spring-boot-app-image:v5.0
 
 5- docker login
 
-6- docker push rochdi1/my-java-image:v5.0
+6- docker push rochdi1/my-spring-boot-app-image:v5.0
 
 Kunde:
 
-1- docker pull rochdi1/my-java-image:v5.0
+1- docker pull rochdi1/my-spring-boot-app-image:v5.0
 
-2- docker run rochdi1/my-java-image:v5.0
+2- docker run rochdi1/my-spring-boot-app-image:v5.0
+
+
+Wenn du die Docker-Gruppen-ID (`DOCKER_GID`) dynamisch an deinen Spring-Boot-App-Container übergeben musst – typischerweise weil deine Spring-Boot-Anwendung innerhalb des Containers den Docker-Socket (`/var/run/docker.sock`) nutzen möchte (Docker-in-Docker / Sidecar) –, kannst du das nicht direkt hartcodiert in ein statisches YAML-File schreiben.
+
+Hier sind die zwei besten Wege, um das elegant in deinem Setup zu lösen:
+
+### Methode 1: Über eine `.env`-Datei (Empfohlen für Docker Compose)
+
+Docker Compose liest automatisch eine Datei namens `.env` im selben Ordner aus.
+
+1. **Erstelle eine `.env` Datei in deinem Projektordner:**
+   ```bash
+   echo "DOCKER_GID=\$(getent group docker | cut -d: -f3)" > .env
+   ```
+   *(Dieser Befehl schreibt die korrekte ID deines Linux-Hosts direkt in die Datei).*
+
+2. **Binde die Variable in deiner `docker-compose.yml` ein:**
+   Füge bei deiner Spring-Boot-App (nicht bei SonarQube) die Umgebungsvariable und den Socket-Volume hinzu:
+
+   ```yaml
+   services:
+     spring-boot-app:
+       image: my-spring-boot-app-image:latest
+       environment:
+         - DOCKER_GID=\${DOCKER_GID}
+       volumes:
+         - /var/run/docker.sock:/var/run/docker.sock
+       ports:
+         - "8080:8080"
+       depends_on:
+         - sonarqube
+
+     sonarqube:
+       image: sonarqube:10.4.1-community
+       # ... restliche SonarQube Konfiguration von vorhin ...
+   ```
+
+---
+
+### Methode 2: Direkt per Shell beim Starten übergeben
+
+Wenn du keine `.env`-Datei anlegen möchtest, kannst du die Variable beim Aufruf von `docker compose` direkt aus der Shell injizieren:
+
+```bash
+DOCKER_GID=\$(getent group docker | cut -d: -f3) docker compose up -d
+```
+
+Docker Compose ersetzt dann `${DOCKER_GID}` in der YAML-Datei mit dem Live-Wert aus deinem Terminal.
+
+---
+
+### 💡 Warum braucht deine Spring Boot App das? (Wichtiger Sicherheitshinweis)
+
+Falls deine Spring-Boot-App mit dieser ID die Berechtigung erhalten soll, Container zu steuern (z.B. um Testcontainers für Integrationstests auszuführen oder Sonar-Scans zu triggern), stelle sicher, dass im Dockerfile deiner Spring-Boot-App auch ein Skript existiert, das diese `DOCKER_GID` nutzt, um die Gruppen-ID im Container anzupassen.
+
+Ein typischer Eintrag im `entrypoint.sh` der Spring-Boot-App sieht so aus:
+
+```bash
+if [ -n "\$DOCKER_GID" ]; then
+  groupadd -g "\$DOCKER_GID" docker-host || true
+  usermod -aG docker-host springuser || true
+fi
+```
+
+
 
 
 ------------------
@@ -213,11 +279,15 @@ Für dein lokales DevOps-Testing benötigst du für den Anfang kein Jenkins und 
  ```
 
 
-So setzt du Option 1 lokal in 3 Schritten um:SonarQube starten: Starte deinen SonarQube-Container wie zuvor besprochen auf Port 9000.
+So setzt du Option 1 lokal in 3 Schritten um:
 
-Scan ausführen: Du musst die Spring Boot App nicht im Container laufen lassen, um sie zu prüfen. 
+* SonarQube starten: Starte deinen SonarQube-Container wie zuvor besprochen auf Port 9000.
 
-Führe einfach folgenden Befehl in deinem Projektordner auf dem Host-System aus:Mit Maven:
+* Scan ausführen: Du musst die Spring Boot App nicht im Container laufen lassen, um sie zu prüfen. 
+
+* Führe einfach folgenden Befehl in deinem Projektordner auf dem Host-System aus:
+
+Mit Maven:
 
 ```bash
 ./mvnw clean verify sonar:sonar -Dsonar.login=DEIN_SONAR_TOKEN -Dsonar.host.url=http://localhost:9000
@@ -229,9 +299,9 @@ Mit Gradle:
 Image pushen: Wenn SonarQube grünes Licht gibt, baust du dein Image und schiebst es hoch:
 
 ```bash
-docker build -t dein-dockerhub-username/spring-app:latest .
+docker build -t rochdi1/spring-app:latest .
 
-docker push dein-dockerhub-username/spring-app:latest
+docker push rochdi1/spring-app:latest
 ```
 Nutzt dein Spring Boot Projekt Maven oder Gradle? Ich kann dir die genauen Zeilen zeigen, die du in deine pom.xml oder build.gradle einfügen musst, damit der Sonar-Scan reibungslos funktioniert.
 
