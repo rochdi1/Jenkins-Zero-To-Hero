@@ -72,7 +72,7 @@ Hurray !! Now you can access the `SonarQube Server` on `http://<ip-address>:9000
 docker login wenn nicht funktionniert
 nano ~/.docker/config.json
 
-Use code with caution.Entferne die Zeile "credsStore": "pass" (oder "desktop"). 
+``` Entferne die Zeile "credsStore": "pass" (oder "desktop"). 
 
 Die Datei sollte danach minimalistisch so aussehen:
 
@@ -107,7 +107,7 @@ Befehle zum Starten:Host-System vorbereiten (Zwingend erforderlich für Elastics
 sudo sysctl -w vm.max_map_count=524288
 ```
 
-Use code with caution.Container starten:
+``` Container starten:
 ```bash
 docker compose up -d
 ```
@@ -132,13 +132,13 @@ Führe den Befehl direkt aus:
 ```bash
 sudo sysctl -w vm.max_map_count=524288
 ```
-Use code with caution.Mache die Änderung dauerhaft (sonst ist sie nach einem Server-Neustart weg):
+``` Mache die Änderung dauerhaft (sonst ist sie nach einem Server-Neustart weg):
 
 ```bash
 echo "vm.max_map_count=524288" | sudo tee -a /etc/sysctl.conf
 ```
 
-Use code with caution.Danach kannst du die Container wie gewohnt starten:
+``` Danach kannst du die Container wie gewohnt starten:
 
 ```bash
 docker compose up -d
@@ -169,7 +169,20 @@ Kunde:
 
 
 ------------------
-Für dein lokales DevOps-Testing benötigst du für den Anfang kein Jenkins und kein Kubernetes. Das wäre für eine lokale Umgebung viel zu schwerfällig (Overengineering).Der einfachste und effizienteste Weg für Entwickler ist die Direkt-Verbindung über Docker.Direkt-Antwort: Welcher Weg ist der beste?Verbinde deine Spring Boot App direkt mit dem SonarQube-Container über dein lokales Build-Tool (Maven oder Gradle). Sobald der Test erfolgreich ist, baust du das Docker-Image und pushst es in die Registry (Docker Hub). Jenkins und Kubernetes machen erst Sinn, wenn du ein ganzes Team koordinierst oder in eine echte Cloud-Infrastruktur (Staging/Produktion) gehst.Hier sind die beiden Wege im Vergleich, dargestellt als Prozess-Diagramme:Option 1: Der empfohlene, schlanke Weg (Lokal)Dieser Weg ist extrem schnell, da dein lokaler Code direkt mit dem Docker-SonarQube kommuniziert.[ Dein Java Code ] 
+Für dein lokales DevOps-Testing benötigst du für den Anfang kein Jenkins und kein Kubernetes.
+ Das wäre für eine lokale Umgebung viel zu schwerfällig (Overengineering).Der einfachste und effizienteste Weg für Entwickler ist die Direkt-Verbindung über Docker.
+ 
+ Direkt-Antwort: Welcher Weg ist der beste?
+ 
+ Verbinde deine Spring Boot App direkt mit dem SonarQube-Container über dein lokales Build-Tool (Maven oder Gradle). Sobald der Test erfolgreich ist, baust du das Docker-Image und pushst es in die Registry (Docker Hub).
+ 
+  Jenkins und Kubernetes machen erst Sinn, wenn du ein ganzes Team koordinierst oder in eine echte Cloud-Infrastruktur (Staging/Produktion) gehst.Hier sind die beiden Wege im Vergleich, dargestellt als Prozess-Diagramme:
+  
+  **Option 1:**
+   Der empfohlene, schlanke Weg (Lokal)Dieser Weg ist extrem schnell, da dein lokaler Code direkt mit dem Docker-SonarQube kommuniziert.
+   
+   ```
+   [ Dein Java Code ] 
        │
        ▼ (Lokaler Build & Scan)
   ./mvnw sonar:sonar  ───► [ SonarQube Container ] (Prüft Code-Qualität)
@@ -179,7 +192,14 @@ Für dein lokales DevOps-Testing benötigst du für den Anfang kein Jenkins und 
        │
        ▼
 [ Docker Hub / Registry ]
-Option 2: Der vollständige CI/CD-Weg (Für Teams & Produktion)Diesen Weg wählst du erst, wenn du Automatisierung für ein Git-Repository (z. B. GitHub/GitLab) einrichtest.[ Git Push / Commit ]
+```
+
+**Option 2:**
+
+ Der vollständige CI/CD-Weg (Für Teams & Produktion)Diesen Weg wählst du erst, wenn du Automatisierung für ein Git-Repository (z. B. GitHub/GitLab) einrichtest.
+ 
+ ```
+ [ Git Push / Commit ]
        │
        ▼ (Triggert Pipeline)
    [ Jenkins ] ─── (1. Baut & Testet Java Code)
@@ -190,11 +210,30 @@ Option 2: Der vollständige CI/CD-Weg (Für Teams & Produktion)Diesen Weg wähls
        │
        ▼ (4. Automatisches Deployment)
  [ Kubernetes ]
-So setzt du Option 1 lokal in 3 Schritten um:SonarQube starten: Starte deinen SonarQube-Container wie zuvor besprochen auf Port 9000.Scan ausführen: Du musst die Spring Boot App nicht im Container laufen lassen, um sie zu prüfen. Führe einfach folgenden Befehl in deinem Projektordner auf dem Host-System aus:Mit Maven:bash./mvnw clean verify sonar:sonar -Dsonar.login=DEIN_SONAR_TOKEN -Dsonar.host.url=http://localhost:9000
-Use code with caution.Mit Gradle:bash./gradlew sonar -Dsonar.login=DEIN_SONAR_TOKEN -Dsonar.host.url=http://localhost:9000
-Use code with caution.Image pushen: Wenn SonarQube grünes Licht gibt, baust du dein Image und schiebst es hoch:bashdocker build -t dein-dockerhub-username/spring-app:latest .
+ ```
+
+
+So setzt du Option 1 lokal in 3 Schritten um:SonarQube starten: Starte deinen SonarQube-Container wie zuvor besprochen auf Port 9000.
+
+Scan ausführen: Du musst die Spring Boot App nicht im Container laufen lassen, um sie zu prüfen. 
+
+Führe einfach folgenden Befehl in deinem Projektordner auf dem Host-System aus:Mit Maven:
+
+```bash
+./mvnw clean verify sonar:sonar -Dsonar.login=DEIN_SONAR_TOKEN -Dsonar.host.url=http://localhost:9000
+``` 
+Mit Gradle:
+```bash
+./gradlew sonar -Dsonar.login=DEIN_SONAR_TOKEN -Dsonar.host.url=http://localhost:9000
+``` 
+Image pushen: Wenn SonarQube grünes Licht gibt, baust du dein Image und schiebst es hoch:
+
+```bash
+docker build -t dein-dockerhub-username/spring-app:latest .
+
 docker push dein-dockerhub-username/spring-app:latest
-Use code with caution.Nutzt dein Spring Boot Projekt Maven oder Gradle? Ich kann dir die genauen Zeilen zeigen, die du in deine pom.xml oder build.gradle einfügen musst, damit der Sonar-Scan reibungslos funktioniert.
+```
+Nutzt dein Spring Boot Projekt Maven oder Gradle? Ich kann dir die genauen Zeilen zeigen, die du in deine pom.xml oder build.gradle einfügen musst, damit der Sonar-Scan reibungslos funktioniert.
 
 
 
@@ -208,12 +247,12 @@ Die Verbindung im lokalen Terminal ändernGehe zurück in dein Terminal in deine
 ```bash
 git remote -v
 ```
-Use code with caution.Benenne die alte Verbindung um (Sicherheitsnetz):
+``` Benenne die alte Verbindung um (Sicherheitsnetz):
 
 ```bash
 git remote rename origin upstream
 ```
-Use code with caution.Füge dein eigenes neues GitHub-Repository als Hauptziel (origin) hinzu:
+``` Füge dein eigenes neues GitHub-Repository als Hauptziel (origin) hinzu:
 
 ```bash
 git remote add origin https://github.com/rochdi1/Jenkins-Zero-To-Hero.git 
