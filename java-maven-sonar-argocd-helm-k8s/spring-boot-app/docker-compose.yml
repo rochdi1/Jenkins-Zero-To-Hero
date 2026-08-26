@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  sonarqube:
+    image: sonarqube:10.4.1-community
+    container_name: spring-boot-app-sonarqube-1
+    depends_on:
+      - db
+    ports:
+      - "9000:9000"
+    extra_hosts:
+      - "localhost:127.0.0.1"
+    environment:
+      - SONAR_JDBC_USERNAME=sonar
+      - SONAR_JDBC_PASSWORD=sonar
+      - SONAR_JDBC_URL=jdbc:postgresql://db:5432/sonar
+      # Deaktiviert die strikte Festplatten-Prüfung von Elasticsearch (wichtig bei <15% freiem Speicher)
+      - SONAR_SEARCH_JAVAADDITIONALOPTS=-Des.cluster.routing.allocation.disk.threshold_enabled=false
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+
+  db:
+    image: postgres:15-alpine
+    container_name: spring-boot-app-db-1
+    environment:
+      - POSTGRES_USER=sonar
+      - POSTGRES_PASSWORD=sonar
+      - POSTGRES_DB=sonar
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+
+volumes:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+  postgresql_data:
