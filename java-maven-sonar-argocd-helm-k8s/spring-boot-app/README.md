@@ -195,3 +195,39 @@ Use code with caution.Mit Gradle:bash./gradlew sonar -Dsonar.login=DEIN_SONAR_TO
 Use code with caution.Image pushen: Wenn SonarQube grünes Licht gibt, baust du dein Image und schiebst es hoch:bashdocker build -t dein-dockerhub-username/spring-app:latest .
 docker push dein-dockerhub-username/spring-app:latest
 Use code with caution.Nutzt dein Spring Boot Projekt Maven oder Gradle? Ich kann dir die genauen Zeilen zeigen, die du in deine pom.xml oder build.gradle einfügen musst, damit der Sonar-Scan reibungslos funktioniert.
+
+
+
+Schritt 1: 
+Erstelle ein neues, leeres Repository auf GitHubLogge dich auf github.com in deinen Account ein.Klicke oben rechts auf das + Symbol und wähle New repository.Gib dem Repository einen Namen (z.B. spring-boot-devops-test).Wichtig: Wähle Public oder Private, aber füge KEINE README, .gitignore oder Lizenz hinzu. Das Repository muss komplett leer sein!Klicke auf Create repository.Kopiere die neue Repository-URL (sieht aus wie https://github.com).
+
+Schritt 2: 
+
+Die Verbindung im lokalen Terminal ändernGehe zurück in dein Terminal in deinen Projektordner. Aktuell zeigt Git noch auf den alten Besitzer (origin). Das ändern wir jetzt.Prüfe die aktuelle (alte) Verbindung
+
+```bash
+git remote -v
+```
+Use code with caution.Benenne die alte Verbindung um (Sicherheitsnetz):
+
+```bash
+git remote rename origin upstream
+```
+Use code with caution.Füge dein eigenes neues GitHub-Repository als Hauptziel (origin) hinzu:
+
+```bash
+git remote add origin https://github.com/rochdi1/Jenkins-Zero-To-Hero.git 
+```
+
+(Ersetze die URL mit deiner kopierten URL aus Schritt 1!)Schritt 3: Code in dein eigenes GitHub pushenJetzt lädst du den gesamten Code inklusive deiner lokalen Anpassungen (wie der korrigierten SonarQube-Datei) in deinen Account hoch:
+
+```bash
+git push -u origin --all
+```
+Falls das Projekt auch Git-Tags (Versionsmarkierungen) enthält, kannst du diese optional mit hochladen:
+
+```bash
+git push origin --tags
+```
+
+Wenn du ab jetzt git push ausführst, landen alle deine Änderungen automatisch in deinem eigenen GitHub-Profil.
