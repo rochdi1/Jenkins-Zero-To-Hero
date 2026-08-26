@@ -1,6 +1,17 @@
 version: '3.8'
 
 services:
+  spring-boot-app:
+    image: my-spring-boot-app-image:latest
+    environment:
+     - DOCKER_GID=\${DOCKER_GID}
+    volumes:
+     - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "8080:8080"
+    depends_on:
+     - sonarqube
+
   sonarqube:
     image: sonarqube:10.4.1-community
     container_name: spring-boot-app-sonarqube-1
