@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   spring-boot-app:
-    image: my-spring-boot-app-image:latest
+    image: ultimate-cicd-pipeline:v1
     environment:
      - DOCKER_GID=\${DOCKER_GID}
     volumes:

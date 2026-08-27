@@ -107,7 +107,7 @@ Befehle zum Starten:Host-System vorbereiten (Zwingend erforderlich für Elastics
 sudo sysctl -w vm.max_map_count=524288
 ```
 
-``` Container starten:
+Container starten:
 ```bash
 docker compose up -d
 ```
@@ -152,21 +152,21 @@ Entwickler:
 
 1- Entwicklung (code Anpassung)
 
-2- docker rmi my-spring-boot-app-image
+2- docker rmi ultimate-cicd-pipeline
 
-3- docker build -t my-spring-boot-app-image .
+3- docker build -t ultimate-cicd-pipeline .
 
-4- docker tag my-spring-boot-app-image rochdi1/my-spring-boot-app-image:v5.0
+4- docker tag ultimate-cicd-pipeline:v1 rochdi1/ultimate-cicd-pipeline:v5.0
 
 5- docker login
 
-6- docker push rochdi1/my-spring-boot-app-image:v5.0
+6- docker push rochdi1/ultimate-cicd-pipeline:v5.0
 
 Kunde:
 
-1- docker pull rochdi1/my-spring-boot-app-image:v5.0
+1- docker pull rochdi1/ultimate-cicd-pipeline:v5.0
 
-2- docker run rochdi1/my-spring-boot-app-image:v5.0
+2- docker run rochdi1/ultimate-cicd-pipeline:v5.0
 
 
 Wenn du die Docker-Gruppen-ID (`DOCKER_GID`) dynamisch an deinen Spring-Boot-App-Container übergeben musst – typischerweise weil deine Spring-Boot-Anwendung innerhalb des Containers den Docker-Socket (`/var/run/docker.sock`) nutzen möchte (Docker-in-Docker / Sidecar) –, kannst du das nicht direkt hartcodiert in ein statisches YAML-File schreiben.
@@ -189,7 +189,7 @@ Docker Compose liest automatisch eine Datei namens `.env` im selben Ordner aus.
    ```yaml
    services:
      spring-boot-app:
-       image: my-spring-boot-app-image:latest
+       image: ultimate-cicd-pipeline:v1:latest
        environment:
          - DOCKER_GID=\${DOCKER_GID}
        volumes:
@@ -232,14 +232,14 @@ fi
 ```
 
 
-   ```bash
-   echo """
-   if [ -n "\$DOCKER_GID" ]; then
-       groupadd -g "\$DOCKER_GID" docker-host || true
-       usermod -aG docker-host springuser || true
-   fi
-   """ > entrypoint.sh
-   ```
+```bash
+echo """
+if [ -n "\$DOCKER_GID" ]; then
+    groupadd -g "\$DOCKER_GID" docker-host || true
+    usermod -aG docker-host springuser || true
+fi
+""" > entrypoint.sh
+```
 
 
 
@@ -254,7 +254,9 @@ Für dein lokales DevOps-Testing benötigst du für den Anfang kein Jenkins und 
   Jenkins und Kubernetes machen erst Sinn, wenn du ein ganzes Team koordinierst oder in eine echte Cloud-Infrastruktur (Staging/Produktion) gehst.Hier sind die beiden Wege im Vergleich, dargestellt als Prozess-Diagramme:
   
   **Option 1:**
-   Der empfohlene, schlanke Weg (Lokal)Dieser Weg ist extrem schnell, da dein lokaler Code direkt mit dem Docker-SonarQube kommuniziert.
+   Der empfohlene, schlanke Weg (Lokal)
+   
+   Dieser Weg ist extrem schnell, da dein lokaler Code direkt mit dem Docker-SonarQube kommuniziert.
    
    ```
    [ Dein Java Code ] 
@@ -298,8 +300,36 @@ So setzt du Option 1 lokal in 3 Schritten um:
 
 Mit Maven:
 
+mvn wrapper:wrapper
+chmod +x mvnw
+mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:3.10.0.2594:sonar -Dsonar.token=sqa_76ddb72f806a00818c1ad34fd0f69ebe9835c84c -Dsonar.host.url=http://localhost:9000
+
+
 ```bash
-./mvnw clean verify sonar:sonar -Dsonar.login=DEIN_SONAR_TOKEN -Dsonar.host.url=http://localhost:9000
+Wichtig: Woher bekommst du DEIN_SONAR_TOKEN?Da dein SonarQube nun läuft, musst du das Token in der Weboberfläche generieren:Öffne http://localhost:9000 im Browser und logge dich ein.Gehe oben rechts auf dein Profil-Icon -> My Account.Klicke auf den Reiter Security.Gib bei "Generate Token" einen Namen ein (z. B. local-test) und klicke auf Generate.Kopiere dieses Token und ersetze damit DEIN_SONAR_TOKEN im Terminal-Befehl.Ist Maven bereits auf deinem System installiert, sodass du Weg 1 direkt nutzen konntest, oder musstest du den Wrapper zuerst generieren?
+
+mvn clean verify sonar:sonar -Dsonar.token=DEIN_SONAR_TOKEN -Dsonar.host.url=http://localhost:9000
+
+
+wenn Problem mit mvn clean verify sonar:sonar
+
+
+mvn wrapper:wrapper
+chmod +x mvnw
+mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:3.10.0.2594:sonar -Dsonar.token=sqa_76ddb72f806a00818c1ad34fd0f69ebe9835c84c -Dsonar.host.url=http://localhost:9000
+
+Oder 
+Alternative für die Zukunft (Optional)Wenn du nicht jedes Mal den langen Befehl eintippen möchtest, kannst du die Gruppe global zu deinen Maven-Einstellungen hinzufügen.Öffne oder erstelle die Datei ~/.m2/settings.xml auf deinem Linux-System und füge den Block <pluginGroups> hinzu:xml
+
+<settings>
+    <pluginGroups>
+        <pluginGroup>org.sonarsource.scanner.maven</pluginGroup>
+    </pluginGroups>
+</settings>
+Use code with caution.Sobald das eingetragen ist, funktioniert auch dein ursprünglicher, kurzer Befehl mvn clean verify sonar:sonar wieder problemlos.
+
+
+
 ``` 
 Mit Gradle:
 ```bash
@@ -349,3 +379,9 @@ git push origin --tags
 ```
 
 Wenn du ab jetzt git push ausführst, landen alle deine Änderungen automatisch in deinem eigenen GitHub-Profil.
+
+
+
+
+
+
