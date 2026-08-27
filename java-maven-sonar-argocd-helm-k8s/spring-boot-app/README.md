@@ -356,12 +356,12 @@ Die Verbindung im lokalen Terminal ändernGehe zurück in dein Terminal in deine
 ```bash
 git remote -v
 ```
-``` Benenne die alte Verbindung um (Sicherheitsnetz):
+ Benenne die alte Verbindung um (Sicherheitsnetz):
 
 ```bash
 git remote rename origin upstream
 ```
-``` Füge dein eigenes neues GitHub-Repository als Hauptziel (origin) hinzu:
+Füge dein eigenes neues GitHub-Repository als Hauptziel (origin) hinzu:
 
 ```bash
 git remote add origin https://github.com/rochdi1/Jenkins-Zero-To-Hero.git 
